@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Modern reproducibility runner for the EpiRank SARS case study.
+"""Reproducibility runner for the EpiRank SARS case study.
 
 This script focuses on the project-proposal requirements:
 EpiRank movement settings, PageRank/HITS baselines, and sensitivity analysis.
@@ -19,8 +19,8 @@ SCRIPTS_DIR = REPO_ROOT / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from EpiRank import additional_analysis_modern as aa
-from EpiRank import epirank_modern as epirank
+from EpiRank import additional_analysis as aa
+from EpiRank import epirank
 
 
 MOVEMENT_SETTINGS = [
@@ -166,10 +166,10 @@ def main():
 
     if args.output_dir is not None:
         args.output_dir.mkdir(parents=True, exist_ok=True)
-        movement_df.to_csv(args.output_dir / "movement_comparison_modern.csv", index=False)
-        baseline_df.to_csv(args.output_dir / "baseline_comparison_modern.csv", index=False)
-        sensitivity_df.to_csv(args.output_dir / "sensitivity_modern.csv", index=False)
-        top_scores_df.to_csv(args.output_dir / "top_scores_modern.csv", index=False)
+        movement_df.to_csv(args.output_dir / "movement_comparison.csv", index=False)
+        baseline_df.to_csv(args.output_dir / "baseline_comparison.csv", index=False)
+        sensitivity_df.to_csv(args.output_dir / "sensitivity.csv", index=False)
+        top_scores_df.to_csv(args.output_dir / "top_scores.csv", index=False)
 
 
 if __name__ == "__main__":

@@ -8,25 +8,23 @@ SCRIPTS_DIR = REPO_ROOT / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from EpiRank import additional_analysis_modern as aa
-from EpiRank import epirank_modern as epirank
+from EpiRank import additional_analysis as aa
+from EpiRank import data as epirank_data
+from EpiRank import epirank
 
-import pandas as pd
 
-
-df = pd.read_csv(REPO_ROOT / "data_flow" / "od_flow_data.csv", index_col=0)
-print(df.head())
-
-g = epirank.make_DiGraph(
-    df,
-    origin_col="origin",
-    destination_col="destination",
-    flow_col="flow",
-    largest_connected_component=False,
+g, town_data = epirank_data.load_taiwan_dataset(
+    REPO_ROOT / "data",
     exclude_selfloop=False,
 )
+print("loaded xlsx dataset:", len(town_data), "towns")
 
-epi_vals05 = epirank.run_epirank(g, daytime=0.5, d=0.95)
+epi_vals05 = epirank.run_epirank(
+    g,
+    daytime=0.5,
+    d=0.95,
+    exfac=epirank_data.make_population_exfac(g, town_data),
+)
 baselines = aa.calculate_metrices(g, d=0.95)
 
 print("done")

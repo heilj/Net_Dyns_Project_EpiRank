@@ -1,1 +1,1 @@
-"""Modern EpiRank package used by the project scripts and notebooks."""
+"""EpiRank package used by the project scripts and notebooks."""

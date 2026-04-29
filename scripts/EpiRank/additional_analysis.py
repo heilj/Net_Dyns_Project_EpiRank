@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-"""Modern NetworkX-compatible analysis helpers for EpiRank."""
+"""Analysis helpers for EpiRank."""
 
 import copy
 
@@ -8,6 +8,9 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 from scipy import stats as st
+
+
+LEVEL_LABELS = ["NC", "C-III", "C-II", "C-I"]
 
 
 def htbreak(adic, g=4):
@@ -33,6 +36,50 @@ def htbreak(adic, g=4):
         adic2[k] = lvl
 
     return adic2, breaks
+
+
+def head_tail_breaks(values, n_breaks=3):
+    """Return ascending head/tail break points for an array-like input."""
+    head = np.asarray(values, dtype=float)
+    breaks = []
+    for _ in range(n_breaks):
+        if len(head) < 2:
+            break
+        mean_value = float(head.mean())
+        breaks.append(mean_value)
+        head = head[head > mean_value]
+    return sorted(breaks)
+
+
+def classify_by_breaks(values, breaks, labels=None):
+    """Classify values with head/tail breaks into four EpiRank levels."""
+    labels = LEVEL_LABELS if labels is None else labels
+    if len(labels) < 2:
+        raise ValueError("at least two labels are required")
+    if not breaks:
+        return [labels[0]] * len(values)
+
+    breaks = list(breaks)
+    while len(breaks) < len(labels) - 1:
+        breaks.append(breaks[-1])
+
+    result = []
+    for value in values:
+        level = len(labels) - 1
+        for idx, break_value in enumerate(breaks[: len(labels) - 1]):
+            if value <= break_value:
+                level = idx
+                break
+        result.append(labels[level])
+    return result
+
+
+def classify_dict(values, n_breaks=3, labels=None):
+    """Classify a dictionary of scores and preserve its keys."""
+    keys = list(values.keys())
+    breaks = head_tail_breaks([values[k] for k in keys], n_breaks=n_breaks)
+    classes = classify_by_breaks([values[k] for k in keys], breaks, labels=labels)
+    return dict(zip(keys, classes)), breaks
 
 
 def calculate_IOratio(g, exclude_selfloop=True):
@@ -123,6 +170,28 @@ def get_spearman_cor(dic1, dic2, simplify=True):
     numbers1, numbers2 = _paired_values(dic1, dic2)
     cor, pvalue = st.spearmanr(numbers1, numbers2)
     return _simplify_correlation(cor, pvalue, simplify)
+
+
+def get_kendalltau_cor(dic1, dic2, simplify=True):
+    numbers1, numbers2 = _paired_values(dic1, dic2)
+    cor, pvalue = st.kendalltau(numbers1, numbers2)
+    return _simplify_correlation(cor, pvalue, simplify)
+
+
+def core_precision_recall(predicted, observed, core_labels=None):
+    """Precision/recall for classifying core townships.
+
+    By default, every level except ``NC`` is treated as core, matching the
+    GUI table logic.
+    """
+    core_labels = {"C-III", "C-II", "C-I"} if core_labels is None else set(core_labels)
+    keys = [key for key in predicted if key in observed]
+    tp = sum(predicted[key] in core_labels and observed[key] in core_labels for key in keys)
+    fp = sum(predicted[key] in core_labels and observed[key] not in core_labels for key in keys)
+    fn = sum(predicted[key] not in core_labels and observed[key] in core_labels for key in keys)
+    recall = tp / (tp + fn) if tp + fn else 0.0
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    return recall, precision
 
 
 def validate(validate_d, epi, trad):

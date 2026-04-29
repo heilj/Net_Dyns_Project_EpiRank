@@ -1,11 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-"""Modern NetworkX-compatible EpiRank implementation.
-
-This file intentionally leaves the original ``epirank.py`` untouched.  It keeps
-the public behavior of the legacy functions while replacing NetworkX APIs that
-were removed in NetworkX 3.x.
-"""
+"""NetworkX-compatible EpiRank implementation."""
 
 from dataclasses import dataclass
 
@@ -57,6 +52,7 @@ def run_epirank(
     number_of_loops=1000,
     exfac=None,
     tol=0.0,
+    weight="weight",
     verbose=True,
 ):
     """Calculate EpiRank values for a weighted directed graph.
@@ -71,7 +67,7 @@ def run_epirank(
 
     if verbose:
         print("start preparing matrices")
-    matrices = prepare_epirank_matrices(g)
+    matrices = prepare_epirank_matrices(g, weight=weight)
     exfac_matrix = get_exfac(exfac, g)
     return run_epirank_prepared(
         matrices,
@@ -84,14 +80,14 @@ def run_epirank(
     )
 
 
-def prepare_epirank_matrices(g):
+def prepare_epirank_matrices(g, weight="weight"):
     """Prepare normalized movement matrices once for repeated EpiRank runs."""
     nodes = list(g.nodes())
     ncount = len(nodes)
     if ncount == 0:
         return EpiRankMatrices(nodes=nodes, cn=np.empty((0, 0)), cnt=np.empty((0, 0)))
 
-    cn_t = nx.to_numpy_array(g, nodelist=nodes, weight="weight", dtype=float)
+    cn_t = nx.to_numpy_array(g, nodelist=nodes, weight=weight, dtype=float)
 
     csum = cn_t.sum(axis=0)
     cn = np.divide(
