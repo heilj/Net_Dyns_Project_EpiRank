@@ -252,7 +252,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", default=REPO_ROOT / "data", type=Path)
     parser.add_argument("--output-dir", default=REPO_ROOT / "results" / "taiwan", type=Path)
-    parser.add_argument("--figures-dir", default=REPO_ROOT / "results" / "taiwan" / "figures_population", type=Path)
+    parser.add_argument("--figures-dir", default=REPO_ROOT / "results" / "taiwan" / "figures", type=Path)
     parser.add_argument("--damping", default=0.95, type=float)
     parser.add_argument("--daytime", default=0.5, type=float)
     parser.add_argument("--loops", default=5000, type=int)
